@@ -141,7 +141,7 @@ NSString * const HarpyLanguageTurkish               = @"tr";
         storeString = [NSString stringWithFormat:HarpyAppStoreLinkUniversal, _appID];
     }
     //check version in self backend
-    storeString = @"https://jaybo-version.parseapp.com/ios";
+    storeString = @"https://api.jay.bo:3000/versions/ios";
     
     // Initialize storeURL with storeString, and create request object
     NSURL *storeURL = [NSURL URLWithString:storeString];
@@ -156,9 +156,11 @@ NSString * const HarpyLanguageTurkish               = @"tr";
     NSURLSessionDataTask *task = [session dataTaskWithRequest:request
                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
                                                 if ([data length] > 0 && !error) { // Success
-            
-                                                    self.appData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
-            
+
+                                                    self.appData = [[NSJSONSerialization JSONObjectWithData:data options:0 error:nil] objectForKey:@"result"];
+                                                    if ([self.appData objectForKey:@"forceUpdate"] == true)
+                                                        self.alertType = HarpyAlertTypeForce;
+                                                    
                                                     if ([self isDebugEnabled]) {
                                                         NSLog(@"[Harpy] JSON Results: %@", _appData);
                                                     }
@@ -175,7 +177,7 @@ NSString * const HarpyLanguageTurkish               = @"tr";
                                                          Used to contain all versions, but now only contains the latest version.
                                                          Still returns an instance of NSArray.
                                                          */
-                                                        _currentAppStoreVersion = [self.appData valueForKey:@"version"];
+                                                        _currentAppStoreVersion = [self.appData valueForKey:@"IOS_VERSION"];
                                                         if (_currentAppStoreVersion)
                                                             [self checkIfAppStoreVersionIsNewestVersion:_currentAppStoreVersion];
                 
@@ -205,7 +207,10 @@ NSString * const HarpyLanguageTurkish               = @"tr";
     if ([[self currentVersion] compare:currentAppStoreVersion options:NSNumericSearch] == NSOrderedAscending) {
         [self localizeAlertStringsForCurrentAppStoreVersion:currentAppStoreVersion];
         [self alertTypeForVersion:currentAppStoreVersion];
-        [self showAlertIfCurrentAppStoreVersionNotSkipped:currentAppStoreVersion];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self showAlertWithAppStoreVersion:currentAppStoreVersion];
+        });
+        //[self showAlertIfCurrentAppStoreVersionNotSkipped:currentAppStoreVersion];
     }
 }
 
