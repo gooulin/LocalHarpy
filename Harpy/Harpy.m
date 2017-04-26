@@ -143,6 +143,7 @@ NSString * const HarpyLanguageTurkish               = @"tr";
     //check version in self backend
     storeString = @"https://api-cdn.jay.bo/versions/ios";
     
+    
     // Initialize storeURL with storeString, and create request object
     NSURL *storeURL = [NSURL URLWithString:storeString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:storeURL];
